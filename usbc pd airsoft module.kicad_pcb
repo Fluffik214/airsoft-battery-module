@@ -12202,7 +12202,7 @@
 		(embedded_fonts no)
 		(model "${KIPRJMOD}/3dmodels/USB_C_HRO_TYPE-C-31-M-12.step"
 			(offset
-				(xyz 0 0.471 0)
+				(xyz 0 -1.05 0)
 			)
 			(scale
 				(xyz 1 1 1)
