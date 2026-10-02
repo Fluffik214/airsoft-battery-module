@@ -31,6 +31,7 @@ This is a USB-C PD charger and cell monitor for a **3S LiPo** that lives in an a
 | `firmware/` | STM32F042 firmware: bare-metal C plus TinyUSB. **`firmware/README.md` is the full guide**, covering protocol, settings, safety rules and how to customize |
 | `android/` | Android app: Kotlin, Jetpack Compose, Material 3 |
 | `release/` | Prebuilt firmware (`.bin` / `.hex`) and app (`.apk`) |
+| `production/` | Gerber zip for the board house, drill files, pick-and-place, BOM, assembly drawings, and `ORDERING.md` (fab settings) |
 
 ## Quick start
 
