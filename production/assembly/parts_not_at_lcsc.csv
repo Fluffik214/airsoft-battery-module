@@ -1,0 +1,2 @@
+Quantity,Manufacturer,Manufacturer Part Number,Package,Designator,Where,Why
+1,Diodes Incorporated,AP7381-33SA-7,SOT-23,U5,Mouser / DigiKey / TME / Farnell,"LCSC listing C3752764 discontinued. Do NOT substitute: common 3.3 V SOT-23 LDOs (TLV760, LM3480, HT7533, ME6203) have a different pin order"
