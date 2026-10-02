@@ -37,8 +37,6 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -58,6 +56,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.airsoftmodule.charger.data.ChargerViewModel
 import com.airsoftmodule.charger.data.Link
 import com.airsoftmodule.charger.ui.components.Pill
+import com.airsoftmodule.charger.ui.components.Toaster
 import com.airsoftmodule.charger.ui.screens.ConsoleScreen
 import com.airsoftmodule.charger.ui.screens.DashboardScreen
 import com.airsoftmodule.charger.ui.screens.GraphsScreen
@@ -78,18 +77,16 @@ fun ChargerApp(vm: ChargerViewModel) {
     var tab by rememberSaveable { mutableStateOf(Tab.DASH) }
     var console by rememberSaveable { mutableStateOf(false) }
     var logOpen by rememberSaveable { mutableStateOf(false) }
-    val snackbar = remember { SnackbarHostState() }
     val link by vm.link.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) { vm.messages.collect { snackbar.showSnackbar(it) } }
     BackHandler(console) { console = false }
     BackHandler(logOpen) { logOpen = false }
     BackHandler(!console && !logOpen && tab != Tab.DASH) { tab = Tab.DASH }
 
+    Box(Modifier.fillMaxSize()) {
     Scaffold(
         containerColor = Tac.Bg,
         contentWindowInsets = WindowInsets(0),
-        snackbarHost = { SnackbarHost(snackbar) },
         topBar = { TopBar(link, onClick = { if (link is Link.Connected || link is Link.Demo) Unit else vm.connect() }) },
         bottomBar = {
             if (!console && !logOpen) NavigationBar(containerColor = Tac.Surface, tonalElevation = 0.dp) {
@@ -132,6 +129,9 @@ fun ChargerApp(vm: ChargerViewModel) {
                 }
             }
         }
+    }
+    // notifications: top-right corner, below the top bar, hide themselves
+    Toaster(vm.messages, Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(top = 64.dp, end = 12.dp))
     }
 }
 

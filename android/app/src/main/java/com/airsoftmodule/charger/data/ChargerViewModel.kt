@@ -227,12 +227,20 @@ class ChargerViewModel(app: Application) : AndroidViewModel(app) {
     // ------------------------------------------------------------------ protocol
     fun send(cmd: String) { outbox.trySend(cmd.trim()) }
 
-    /** Charge plan for the next time the module sits on a charger: mode 0 = to tgt %, 1 = storage, 2 = never. */
+    private var planJob: Job? = null
+
+    /**
+     * Charge plan for the next time the module sits on a charger: mode 0 = to tgt %, 1 = storage, 2 = never.
+     * Saved quietly and debounced: quick taps / slider moves become one flash write ~0.7 s after the last change.
+     */
     fun setPlan(mode: Int, targetPct: Int? = null) {
-        send("set mode $mode")
-        if (targetPct != null) send("set tgt $targetPct")
-        expectingSave = true
-        send("save")
+        planJob?.cancel()
+        planJob = viewModelScope.launch {
+            delay(700)
+            send("set mode $mode")
+            if (targetPct != null) send("set tgt $targetPct")
+            send("save")
+        }
     }
 
     /** Push a batch of changed settings, then store them in flash. */
