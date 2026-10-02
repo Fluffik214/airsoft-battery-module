@@ -18,7 +18,7 @@ d['net_settings']['classes'] = [base,
     cls('POWER', clearance=0.2, track_width=0.8, via_diameter=0.6, via_drill=0.3),
     cls('USB', clearance=0.15, track_width=0.2, diff_pair_width=0.2, diff_pair_gap=0.3)]
 d['net_settings']['netclass_patterns'] = (
-    [{'netclass': 'POWER', 'pattern': '/' + n} for n in ('VBUS', 'PMID', 'SYS', 'BAT_P', 'MAIN_P', 'SW1', 'SW2', 'GND')] +
+    [{'netclass': 'POWER', 'pattern': '/' + n} for n in ('VBUS', 'PMID', 'SYS', 'BAT_P', 'SW1', 'SW2', 'GND')] +
     [{'netclass': 'USB', 'pattern': '/USB_D*'}])
 json.dump(d, open(p, 'w', encoding='utf8'), indent=2)
 print('rules written', p)

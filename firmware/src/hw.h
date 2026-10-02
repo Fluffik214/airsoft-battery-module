@@ -18,6 +18,7 @@ uint32_t vdda_mv(void);
 bool     i2c_xfer(uint8_t addr7, const uint8_t *w, uint8_t wl, uint8_t *r, uint8_t rl);
 
 void     led_set(uint8_t percent);                 // 0..100 duty
+void     cled_set(uint8_t mask);                   // cell LEDs: bit 2i = cell i red, bit 2i+1 = cell i green
 
 void     wdg_init(void);
 void     wdg_feed(void);

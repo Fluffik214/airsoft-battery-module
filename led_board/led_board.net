@@ -1,0 +1,777 @@
+(export
+	(version "E")
+	(design
+		(source "C:\\Users\\duzik\\Desktop\\usbc pd airsoft module\\led_board\\led_board.kicad_sch")
+		(date "2026-10-03T00:10:08")
+		(tool "Eeschema 10.0.1")
+		(sheet
+			(number "1")
+			(name "/")
+			(tstamps "/")
+			(title_block
+				(title "Cell LED board")
+				(company)
+				(rev "A")
+				(date "2026-10-02")
+				(source "led_board.kicad_sch")
+				(comment
+					(number "1")
+					(value "3 red/green LEDs, one per cell, charlieplexed from the charger pads A/B/C")
+				)
+				(comment
+					(number "2")
+					(value "No parts but the LEDs: the 100R resistors are on the charger board (R27-R29)")
+				)
+				(comment
+					(number "3")
+					(value "")
+				)
+				(comment
+					(number "4")
+					(value "")
+				)
+				(comment
+					(number "5")
+					(value "")
+				)
+				(comment
+					(number "6")
+					(value "")
+				)
+				(comment
+					(number "7")
+					(value "")
+				)
+				(comment
+					(number "8")
+					(value "")
+				)
+				(comment
+					(number "9")
+					(value "")
+				)
+			)
+		)
+	)
+	(components
+		(comp
+			(ref "H1")
+			(value "M2")
+			(footprint "MountingHole:MountingHole_2.2mm_M2")
+			(fields
+				(field
+					(name "Footprint") "MountingHole:MountingHole_2.2mm_M2")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Mechanical")
+				(part "MountingHole")
+				(description "Mounting Hole without connection")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "led_board.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
+			)
+			(property
+				(name "ki_keywords")
+				(value "mounting hole")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "MountingHole*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "2b4057d8-f575-5c09-9669-b3637a1e1969")
+			(units
+				(unit
+					(name "A")
+					(pins)
+				)
+			)
+		)
+		(comp
+			(ref "H2")
+			(value "M2")
+			(footprint "MountingHole:MountingHole_2.2mm_M2")
+			(fields
+				(field
+					(name "Footprint") "MountingHole:MountingHole_2.2mm_M2")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Mechanical")
+				(part "MountingHole")
+				(description "Mounting Hole without connection")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "led_board.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
+			)
+			(property
+				(name "ki_keywords")
+				(value "mounting hole")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "MountingHole*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "d039fe06-5c67-5551-b4d0-73cd2d3c3290")
+			(units
+				(unit
+					(name "A")
+					(pins)
+				)
+			)
+		)
+		(comp
+			(ref "S1")
+			(value "KPHBM-2012SURKCGKC")
+			(footprint "LED_SMD:LED_Kingbright_APHBM2012_2x1.25mm")
+			(fields
+				(field
+					(name "MPN") "Kingbright KPHBM-2012SURKCGKC")
+				(field
+					(name "LCSC") "C598341")
+				(field
+					(name "Note") "pin1 red A, pin2 red K, pin3 green K, pin4 green A (datasheet)")
+				(field
+					(name "Footprint") "LED_SMD:LED_Kingbright_APHBM2012_2x1.25mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "LED_Dual_AKKA")
+				(description "Dual LED, cathodes on pins 2 and 3")
+			)
+			(property
+				(name "MPN")
+				(value "Kingbright KPHBM-2012SURKCGKC")
+			)
+			(property
+				(name "LCSC")
+				(value "C598341")
+			)
+			(property
+				(name "Note")
+				(value "pin1 red A, pin2 red K, pin3 green K, pin4 green A (datasheet)")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "led_board.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "LED diode bicolor dual")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "LED* LED_SMD:* LED_THT:*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "ee897e5e-1816-5e07-8564-87fcd68287b6")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "S2")
+			(value "KPHBM-2012SURKCGKC")
+			(footprint "LED_SMD:LED_Kingbright_APHBM2012_2x1.25mm")
+			(fields
+				(field
+					(name "MPN") "Kingbright KPHBM-2012SURKCGKC")
+				(field
+					(name "LCSC") "C598341")
+				(field
+					(name "Note") "pin1 red A, pin2 red K, pin3 green K, pin4 green A (datasheet)")
+				(field
+					(name "Footprint") "LED_SMD:LED_Kingbright_APHBM2012_2x1.25mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "LED_Dual_AKKA")
+				(description "Dual LED, cathodes on pins 2 and 3")
+			)
+			(property
+				(name "MPN")
+				(value "Kingbright KPHBM-2012SURKCGKC")
+			)
+			(property
+				(name "LCSC")
+				(value "C598341")
+			)
+			(property
+				(name "Note")
+				(value "pin1 red A, pin2 red K, pin3 green K, pin4 green A (datasheet)")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "led_board.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "LED diode bicolor dual")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "LED* LED_SMD:* LED_THT:*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "bff534be-89f5-52da-9469-64d65229fe1a")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "S3")
+			(value "KPHBM-2012SURKCGKC")
+			(footprint "LED_SMD:LED_Kingbright_APHBM2012_2x1.25mm")
+			(fields
+				(field
+					(name "MPN") "Kingbright KPHBM-2012SURKCGKC")
+				(field
+					(name "LCSC") "C598341")
+				(field
+					(name "Note") "pin1 red A, pin2 red K, pin3 green K, pin4 green A (datasheet)")
+				(field
+					(name "Footprint") "LED_SMD:LED_Kingbright_APHBM2012_2x1.25mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "LED_Dual_AKKA")
+				(description "Dual LED, cathodes on pins 2 and 3")
+			)
+			(property
+				(name "MPN")
+				(value "Kingbright KPHBM-2012SURKCGKC")
+			)
+			(property
+				(name "LCSC")
+				(value "C598341")
+			)
+			(property
+				(name "Note")
+				(value "pin1 red A, pin2 red K, pin3 green K, pin4 green A (datasheet)")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "led_board.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "LED diode bicolor dual")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "LED* LED_SMD:* LED_THT:*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "0326dc52-e0e8-58e3-b4cb-6ab5e3dd64f0")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "TP13")
+			(value "LED_A")
+			(footprint "TestPoint:TestPoint_Pad_D1.5mm")
+			(fields
+				(field
+					(name "Footprint") "TestPoint:TestPoint_Pad_D1.5mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Connector")
+				(part "TestPoint")
+				(description "test point")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "led_board.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
+			)
+			(property
+				(name "ki_keywords")
+				(value "test point tp")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "Pin* Test*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "0e931bdf-86b5-5873-8f72-fead060c83d9")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "TP14")
+			(value "LED_B")
+			(footprint "TestPoint:TestPoint_Pad_D1.5mm")
+			(fields
+				(field
+					(name "Footprint") "TestPoint:TestPoint_Pad_D1.5mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Connector")
+				(part "TestPoint")
+				(description "test point")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "led_board.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
+			)
+			(property
+				(name "ki_keywords")
+				(value "test point tp")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "Pin* Test*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "da8c0258-8da8-567f-9e91-6b214f4cc19b")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "TP15")
+			(value "LED_C")
+			(footprint "TestPoint:TestPoint_Pad_D1.5mm")
+			(fields
+				(field
+					(name "Footprint") "TestPoint:TestPoint_Pad_D1.5mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Connector")
+				(part "TestPoint")
+				(description "test point")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "led_board.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
+			)
+			(property
+				(name "ki_keywords")
+				(value "test point tp")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "Pin* Test*")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "fb5c45f2-2063-5b59-a455-d89a5c251be9")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+					)
+				)
+			)
+		)
+	)
+	(groups)
+	(variants)
+	(libparts
+		(libpart
+			(lib "Connector")
+			(part "TestPoint")
+			(description "test point")
+			(footprints
+				(fp "Pin*")
+				(fp "Test*")
+			)
+			(fields
+				(field
+					(name "Reference") "TP")
+				(field
+					(name "Value") "TestPoint")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "test point")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "1")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "Device")
+			(part "LED_Dual_AKKA")
+			(description "Dual LED, cathodes on pins 2 and 3")
+			(footprints
+				(fp "LED*")
+				(fp "LED_SMD:*")
+				(fp "LED_THT:*")
+			)
+			(fields
+				(field
+					(name "Reference") "D")
+				(field
+					(name "Value") "LED_Dual_AKKA")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Dual LED, cathodes on pins 2 and 3")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "A1")
+					(type "input")
+				)
+				(pin
+					(num "2")
+					(name "K1")
+					(type "input")
+				)
+				(pin
+					(num "3")
+					(name "K2")
+					(type "input")
+				)
+				(pin
+					(num "4")
+					(name "A2")
+					(type "input")
+				)
+			)
+		)
+		(libpart
+			(lib "Mechanical")
+			(part "MountingHole")
+			(description "Mounting Hole without connection")
+			(footprints
+				(fp "MountingHole*")
+			)
+			(fields
+				(field
+					(name "Reference") "H")
+				(field
+					(name "Value") "MountingHole")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Mounting Hole without connection")
+			)
+		)
+	)
+	(libraries
+		(library
+			(logical "Connector")
+			(uri "${KICAD10_SYMBOL_DIR}/Connector.kicad_sym")
+		)
+		(library
+			(logical "Device")
+			(uri "${KICAD10_SYMBOL_DIR}/Device.kicad_sym")
+		)
+		(library
+			(logical "Mechanical")
+			(uri "${KICAD10_SYMBOL_DIR}/Mechanical.kicad_sym")
+		)
+	)
+	(nets
+		(net
+			(code "1")
+			(name "/LED_A")
+			(class "Default")
+			(node
+				(ref "S1")
+				(pin "1")
+				(pinfunction "A1_1")
+				(pintype "input")
+			)
+			(node
+				(ref "S1")
+				(pin "3")
+				(pinfunction "K2_3")
+				(pintype "input")
+			)
+			(node
+				(ref "S3")
+				(pin "2")
+				(pinfunction "K1_2")
+				(pintype "input")
+			)
+			(node
+				(ref "S3")
+				(pin "4")
+				(pinfunction "A2_4")
+				(pintype "input")
+			)
+			(node
+				(ref "TP13")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "2")
+			(name "/LED_B")
+			(class "Default")
+			(node
+				(ref "S1")
+				(pin "2")
+				(pinfunction "K1_2")
+				(pintype "input")
+			)
+			(node
+				(ref "S1")
+				(pin "4")
+				(pinfunction "A2_4")
+				(pintype "input")
+			)
+			(node
+				(ref "S2")
+				(pin "1")
+				(pinfunction "A1_1")
+				(pintype "input")
+			)
+			(node
+				(ref "S2")
+				(pin "3")
+				(pinfunction "K2_3")
+				(pintype "input")
+			)
+			(node
+				(ref "TP14")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "3")
+			(name "/LED_C")
+			(class "Default")
+			(node
+				(ref "S2")
+				(pin "2")
+				(pinfunction "K1_2")
+				(pintype "input")
+			)
+			(node
+				(ref "S2")
+				(pin "4")
+				(pinfunction "A2_4")
+				(pintype "input")
+			)
+			(node
+				(ref "S3")
+				(pin "1")
+				(pinfunction "A1_1")
+				(pintype "input")
+			)
+			(node
+				(ref "S3")
+				(pin "3")
+				(pinfunction "K2_3")
+				(pintype "input")
+			)
+			(node
+				(ref "TP15")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+		)
+	)
+)

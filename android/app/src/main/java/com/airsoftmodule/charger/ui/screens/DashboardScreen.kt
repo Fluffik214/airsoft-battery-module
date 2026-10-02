@@ -421,7 +421,7 @@ private fun NotConnected(link: Link, onConnect: () -> Unit, onDemo: () -> Unit) 
             Text("CHECKLIST", style = MaterialTheme.typography.labelSmall, color = Tac.Dim)
             Spacer(Modifier.height(8.dp))
             listOf(
-                "Battery plugged in: Deans and balance lead",
+                "Battery balance plug (white JST-XH) plugged in",
                 "Use a USB-C ↔ USB-C data cable (not charge-only)",
                 "Phone has USB OTG / host support (most do)",
                 "For charging: a USB-C PD charger, 20 W or more",

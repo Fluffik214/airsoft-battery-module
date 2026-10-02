@@ -1,6 +1,6 @@
 # =====================================================================================
 # REGION D : BQ7692003 cell monitor (U4 @ 192.0, 110.6), balance plug J2, fuse F1,
-#            Deans wire pads TP1..TP4 (bottom), BAT_P out, back-side text area.
+#            BAT_P out to F1 and the J2 charge path, back-side text area.
 # Back-side TEXT AREA (kept free of vias/bottom copper except the GND plane): x 198..209.8, y 101.5..116.2
 # =====================================================================================
 P = lambda r, n: pad(r, n)
@@ -9,11 +9,10 @@ def via_s(net, x, y): b.via(net, x, y, **VIA_S)
 # ---------------- right side of U4: ALERT hop, SRP/SRN -> VSS under the body, VC lanes
 x20, y20 = P('U4', 20); x19, y19 = P('U4', 19); x18, y18 = P('U4', 18); x3, y3 = P('U4', 3)
 av = (195.95, 106.85)
-b.track('BMS_ALERT', [(x20 + 0.5, y20), (av[0], y20 - 0.4), av], W_SIG); via_s('BMS_ALERT', *av)
+b.track('BMS_ALERT', [(x20 + 0.5, y20), (av[0], y20 - 0.4), av], W_SIG)     # ALERT -> R18 only (not to the MCU)
 r18a, r18b = P('R18', 1), P('R18', 2)
 b.track('BMS_ALERT', [av, (av[0], r18a[1] + 0.4), (r18a[0] + 0.4, r18a[1]), r18a], W_SIG)
 b.track('GND', [r18b, (r18b[0] - 0.8, r18b[1])], 0.3); via_s('GND', r18b[0] - 0.8, r18b[1])
-b.track('BMS_ALERT', [av, (184.9, av[1]), (184.9, LANE['BMS_ALERT'] - 0.4), (184.5, LANE['BMS_ALERT'])], W_SIG, B)
 # SRN/SRP tied to VSS straight under the IC body, VSS -> GND via on the left
 b.track('GND', [(x19 - 0.5, y19), (x18 - 0.5, y18)], 0.25)
 b.track('GND', [(x18 - 0.5, y18), (x3 + 0.5, y3)], 0.25)
@@ -49,32 +48,26 @@ for c, top_net, bot_net in (('C26', 'GND', 'BMS_VC0'), ('C25', 'BMS_VC0', 'BMS_V
         b.track(top_net, [p2, (p2[0] + abs(dy), LV[top_net])], W_SIG)   # 45-degree join onto the lane
 gt = P('C26', 2); b.track('GND', [gt, (gt[0], gt[1] - 0.8)], 0.3); via_s('GND', gt[0], gt[1] - 0.8)
 
-# balance plug lanes -> filter resistors. J2 is rotated so its pads run PACK_P, CELL2, CELL1, GND
-# top->bottom (reverse of the U4 VC order): CELL2 stays on top, CELL1 and PACK_P hop under it
-# through the gaps between J2's pads (all hops at x >= 216.6, clear of the back-side text area).
-jP, j3, j2c, jG = P('J2', 4), P('J2', 3), P('J2', 2), P('J2', 1)
-JX = P('J2', 1)[0] - 2.25                       # left edge of the J2 pads
+# balance plug lanes -> filter resistors. J2 pin order follows the pack plug (black on header pin 4), so its
+# pads run GND, CELL1, CELL2, PACK_P top->bottom: the same order as the U4 lanes, straight in, no hops.
+jP, j2c, j3, jG = P('J2', 1), P('J2', 2), P('J2', 3), P('J2', 4)     # PACK_P, CELL2_P, CELL1_P, GND
+JX = jP[0] - 2.25                               # left edge of the J2 pads
 r15, r14, r13 = P('R15', 1), P('R14', 1), P('R13', 1)
-# CELL2: top, straight out then 45 deg down to its lane
-b.track('CELL2_P', [(JX + 0.5, j3[1]), (JX - 0.5, j3[1]), (JX - 0.5 - (LV['BMS_VC2'] - j3[1]), LV['BMS_VC2']),
-                    (r14[0] + 0.0, LV['BMS_VC2'])], 0.3)
-# CELL1: pad -> via above it -> bottom -> via -> lane at y(VC1)
-c1v1 = (JX + 0.7, 110.6); c1v2 = (JX - 2.3, LV['BMS_VC1'])
-b.track('CELL1_P', [(c1v1[0], j2c[1]), c1v1], 0.3); via_s('CELL1_P', *c1v1)
-b.track('CELL1_P', [c1v1, (c1v1[0] - (c1v1[1] - c1v2[1]), c1v2[1]), c1v2], 0.3, B); via_s('CELL1_P', *c1v2)
-b.track('CELL1_P', [c1v2, (r15[0], c1v2[1])], 0.3)
-# PACK_P: pad -> via below it -> bottom straight down -> via between CELL1 and GND pads -> lane at y(VC5)
-pv1 = (JX + 1.7, 108.1); pv2 = (JX + 1.7, LV['BMS_VC5'])
-b.track('PACK_P', [(pv1[0], jP[1]), pv1], 0.3); via_s('PACK_P', *pv1)
-b.track('PACK_P', [pv1, pv2], 0.3, B); via_s('PACK_P', *pv2)
-b.track('PACK_P', [pv2, (r13[0], pv2[1])], 0.3)
+def lane(net, pad_y, lane_y, rx):
+    d = abs(lane_y - pad_y)
+    b.track(net, [(JX + 0.5, pad_y), (JX - 0.5, pad_y), (JX - 0.5 - d, lane_y), (rx, lane_y)], 0.3)
+lane('CELL1_P', j3[1], LV['BMS_VC1'], r15[0])
+lane('CELL2_P', j2c[1], LV['BMS_VC2'], r14[0])
+lane('PACK_P', jP[1], LV['BMS_VC5'], r13[0])
+pv2 = (r13[0], LV['BMS_VC5'])
 # PACK_P also feeds the BMS supply filter R12 (45 deg branch off the lane)
 r12a, r12b = P('R12', 1), P('R12', 2)
 bx0 = r13[0] + 1.6
 b.track('PACK_P', [(bx0, pv2[1]), (bx0 - (r12a[1] - pv2[1]), r12a[1]), r12a], 0.3)
-# J2 GND pin -> GND via in the gap below it ; R16 (VC0 filter) GND side -> C26 GND via
-gv = (JX + 1.1, 115.65)
-b.track('GND', [(gv[0], jG[1]), gv], 0.4); b.via('GND', *gv)
+# J2 GND pin (top pad): solid in both pours, plus two vias at its inner end for the charge return current
+for gy in (106.45, 107.25):
+    b.track('GND', [(JX + 0.4, gy), (JX - 0.6, gy)], 0.4); b.via('GND', JX - 0.6, gy)
+# R16 (VC0 filter) GND side -> C26 GND via
 r16g = P('R16', 1); c26g = P('C26', 2)
 b.track('GND', [r16g, (r16g[0], 106.75), (r16g[0] - 0.45, 106.3), (c26g[0] + 0.45, 106.3), c26g], 0.3)
 
@@ -110,14 +103,19 @@ b.track('BMS_BAT', [(x10 - 0.5, y10), (BX, y10)], 0.3)
 b.track('BMS_BAT', [c22a, (c22a[0], 115.0)], 0.3)
 b.track('BMS_BAT', [c21a, (c21a[0], 115.0)], 0.3)
 
-# ---------------- BAT_P out along the top edge to F1, fuse -> MAIN_P -> vias -> Deans pads (bottom)
+# ---------------- BAT_P out along the top edge to F1 ; fuse -> PACK_P into J2 pin 1 (pack +, bottom pad).
+# The pack is charged through the balance plug: J2 pin 1 carries the charge current, pin 4 the return.
+# F1 sits at the top edge, the pack + pad at the bottom: the 0.8 mm charge path drops to the back layer
+# at x 211.2 (east of the back text area) and comes up under the pad, two vias at each end.
 f2 = P('F1', 2); f1 = P('F1', 1)
 b.track('BAT_P', [(177.35, 101.3), (f2[0] - 0.6, 101.3), (f2[0], f2[1])], 1.0)
-MV = [(217.4, 101.6), (217.4, 102.6), (216.5, 101.6), (216.5, 102.6)]
-b.track('MAIN_P', [f1, (217.4, f1[1])], 1.0)
-for v in MV: b.via('MAIN_P', *v)
-b.zone('MAIN_P', B, [(215.9, 100.6), (228.6, 100.6), (228.6, 108.6), (221.15, 108.6), (221.15, 104.6), (215.9, 104.6)],
-       priority=5, name='MAIN_P_PADS')
+CPX = 211.2
+b.track('PACK_P', [f1, (CPX, f1[1]), (CPX, 103.6)], 0.8)
+for vy in (102.6, 103.6): b.via('PACK_P', CPX, vy)
+b.track('PACK_P', [(CPX, 102.6), (CPX, 115.2), (CPX + 0.6, 115.8), (jP[0] - 0.65, 115.8)], 0.8, B)
+for vx in (jP[0] - 1.65, jP[0] - 0.65):
+    b.via('PACK_P', vx, 115.8)
+    b.track('PACK_P', [(vx, 115.8), (vx, jP[1])], 0.8)
 
 # ---------------- text-area marker (back) for the user's custom text
 b.rect(198.0, 101.5, 209.8, 116.2, pcbnew.B_Fab, 0.12)

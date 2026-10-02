@@ -5,7 +5,7 @@ This is a USB-C PD charger and cell monitor for a **3S LiPo** that lives in an a
 | | |
 |---|---|
 | Board | 135 × 21 mm, 2 layers, SMT only, no BGA |
-| Pack | 3S LiPo (made for an iPower 1450 mAh stick). Deans main lead, JST-XH balance plug |
+| Pack | 3S LiPo (made for an iPower 1450 mAh stick). **Connects through the JST-XH balance plug only** (charging and cell sensing); the Deans lead goes straight to the gun |
 | Charging | USB-C PD at 15 V (CH224K) → BQ25798 buck-boost charger |
 | Monitoring | BQ7692003 (per-cell voltage, NTC, balancing) → STM32F042 → USB CDC |
 | Idle drain | about 1 µA when unplugged |
@@ -17,7 +17,9 @@ This is a USB-C PD charger and cell monitor for a **3S LiPo** that lives in an a
   - It starts after USB has stayed between 12 and 17 V for 5 s, then charges to your preset: Full, a custom %, Storage (3.80 V/cell) or Off.
   - If USB goes above 17 V, charging is cut immediately.
 - **Per-cell control, like a hobby balance charger.** When a cell is full, it is held there and bled while the current is turned down, so the other cells can catch up. No cell goes more than 10 mV over the target.
-- **JP2 solder jumper (back of the board).** Open (default) = slow charge, 700 mA. Bridged = fast charge, 1.4 A. Both currents can be changed in the app.
+- **JP2 solder jumper (back of the board).** Open (default) = slow charge, 700 mA. Bridged = fast charge, 1.4 A. Both currents can be changed in the app. Check your balance lead: on thin 26 AWG wires stay on slow charge.
+- **Charging through the balance plug.** The charge current runs in the balance lead's outer wires (pins 1 and 4) through a 2.5 A fuse. The firmware pauses the charger for under a second every few seconds to read the cells without the wire voltage drop, so all three cells are measured accurately.
+- **Cell LEDs.** Three wire pads (A, B, C) near the USB-C drive one red/green LED per cell on a small 20 × 10 mm LED board (`led_board/`) that sits on top of the stock tube: red = cell still charging, green = cell full. Solder A to A, B to B, C to C.
 - **Event log in flash.** Faults (over-voltage, over-temperature, bad cell…) and a report for every charge are stored on the module. The app shows them the next time a phone is connected.
 
 ## Repository layout
@@ -31,7 +33,9 @@ This is a USB-C PD charger and cell monitor for a **3S LiPo** that lives in an a
 | `firmware/` | STM32F042 firmware: bare-metal C plus TinyUSB. **`firmware/README.md` is the full guide**, covering protocol, settings, safety rules and how to customize |
 | `android/` | Android app: Kotlin, Jetpack Compose, Material 3 |
 | `release/` | Prebuilt firmware (`.bin` / `.hex`) and app (`.apk`) |
-| `production/` | Gerber zip for the board house, drill files, pick-and-place, BOM, assembly drawings, and `ORDERING.md` (fab settings) |
+| `production/` | Gerber zip for the board house, drill files, pick-and-place, BOM, assembly drawings, and `ORDERING.md` (fab settings). `production/led_board/` has the same set for the LED board |
+| `led_board/` | KiCad project of the cell-LED board (schematic, routed PCB) plus its generator, checker and routing scripts |
+| `3dmodels/` | 3D models KiCad doesn't ship: the J2 balance plug and the cell LED |
 
 ## Quick start
 
@@ -57,7 +61,7 @@ This is a USB-C PD charger and cell monitor for a **3S LiPo** that lives in an a
 
 ## Safety
 
-LiPo batteries can catch fire. This is a hobby project with **no warranty**. Check `DESIGN_NOTES.md` before the first power-up. In particular, confirm that the balance plug's pin 1 is the pack's negative wire.
+LiPo batteries can catch fire. This is a hobby project with **no warranty**. Check `DESIGN_NOTES.md` before the first power-up. In particular, check your pack's balance plug against `production/assembly/J2-orientation.png`: J2 pin 4 is the pack's negative (black) wire.
 
 ## License
 
@@ -71,3 +75,4 @@ Third-party code in `firmware/lib/` keeps its own license:
 - **TinyUSB:** MIT, see `firmware/lib/tinyusb/LICENSE`.
 - **ARM CMSIS core headers:** Apache-2.0 (SPDX header in each file).
 - **ST device headers:** Apache-2.0, see `firmware/lib/cmsis/LICENSE-ST-cmsis-device-f0.md`.
+- **J2 3D model** (`3dmodels/JST_XH_S4B-XH-SM4-TB.step`): from the JLCEDA/EasyEDA Official Library ([lceda.cn](https://lceda.cn/), [easyeda.com](https://easyeda.com)), see `3dmodels/README.md`.

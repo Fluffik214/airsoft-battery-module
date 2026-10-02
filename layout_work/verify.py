@@ -33,11 +33,12 @@ def two(ref, a, b, val=None, why=''):
     else:
         global oks; oks += 1
 
-# ---------------- J2 balance plug, 3S JST-XH: 1 = pack-, 2 = cell1+, 3 = cell2+, 4 = cell3+ (= pack+)
-expect('J2', '1', 'GND', 'pack negative / cell1-')
-expect('J2', '2', 'CELL1_P', 'cell1+ = cell2-')
-expect('J2', '3', 'CELL2_P', 'cell2+ = cell3-')
-expect('J2', '4', 'PACK_P', 'cell3+ = pack+ (3S top)')
+# ---------------- J2 balance plug, 3S JST-XH. Order set by the pack's plug (black wire lands on header pin 4):
+# 1 = pack+ (cell3+), 2 = cell2+, 3 = cell1+, 4 = pack- (black)
+expect('J2', '1', 'PACK_P', 'cell3+ = pack+ (red)')
+expect('J2', '2', 'CELL2_P', 'cell2+ = cell3-')
+expect('J2', '3', 'CELL1_P', 'cell1+ = cell2-')
+expect('J2', '4', 'GND', 'pack negative (black) / cell1-')
 # ---------------- BQ76920 3S per datasheet Table 9-2
 for p, net, why in [('17', 'BMS_VC0', 'VC0'), ('16', 'BMS_VC1', 'VC1'), ('15', 'BMS_VC2', 'VC2'),
                     ('14', 'BMS_VC2', 'VC3 shorted to VC2 (3S)'), ('13', 'BMS_VC2', 'VC4 shorted to VC2 (3S)'),
@@ -47,10 +48,10 @@ for p, net, why in [('17', 'BMS_VC0', 'VC0'), ('16', 'BMS_VC1', 'VC1'), ('15', '
                     ('8', 'BMS_REGOUT', ''), ('20', 'BMS_ALERT', ''), ('1', None, 'DSG unused'), ('2', None, 'CHG unused'),
                     ('11', None, 'NC')]:
     expect('U4', p, net, why)
-two('R16', 'GND', 'BMS_VC0', '100R', 'cell1- filter')
-two('R15', 'CELL1_P', 'BMS_VC1', '100R', 'cell1+ filter')
-two('R14', 'CELL2_P', 'BMS_VC2', '100R', 'cell2+ filter')
-two('R13', 'PACK_P', 'BMS_VC5', '100R', 'cell3+ filter')
+two('R16', 'GND', 'BMS_VC0', '56R', 'cell1- filter')
+two('R15', 'CELL1_P', 'BMS_VC1', '56R', 'cell1+ filter')
+two('R14', 'CELL2_P', 'BMS_VC2', '56R', 'cell2+ filter')
+two('R13', 'PACK_P', 'BMS_VC5', '56R', 'cell3+ filter')
 two('R12', 'PACK_P', 'BMS_BAT', '100R', 'Rf supply filter')
 two('C26', 'BMS_VC0', 'GND', '1uF'); two('C25', 'BMS_VC1', 'BMS_VC0', '1uF', 'cell1 diff cap')
 two('C24', 'BMS_VC2', 'BMS_VC1', '1uF', 'cell2 diff cap'); two('C23', 'BMS_VC5', 'BMS_VC2', '1uF', 'cell3 diff cap')
@@ -78,10 +79,10 @@ expect('Q1', '1', 'CHG_EN'); expect('Q1', '2', 'GND'); expect('Q1', '3', 'CHG_CE
 for r in ['C7', 'C8', 'C9', 'C10']: two(r, 'PMID', 'GND')
 for r in ['C11', 'C12', 'C13', 'C14', 'C15', 'C16']: two(r, 'SYS', 'GND')
 for r in ['C17', 'C18']: two(r, 'BAT_P', 'GND')
-# ---------------- main lead / fuse / pass-through
-two('F1', 'MAIN_P', 'BAT_P', '3A', 'charger tap fused')
-expect('TP1', '1', 'MAIN_P', 'BATT IN +'); expect('TP2', '1', 'MAIN_P', 'GUN OUT +')
-expect('TP3', '1', 'GND', 'BATT IN -'); expect('TP4', '1', 'GND', 'GUN OUT -')
+# ---------------- charge path: balance plug J2 pin 1 -> fuse -> charger BAT (no main-lead pads any more)
+two('F1', 'PACK_P', 'BAT_P', '2.5A', 'charge current through the balance plug, fused')
+for tp in ('TP1', 'TP2', 'TP3', 'TP4'):
+    if tp in comps: fails.append(f'{tp}: old Deans pad still present')
 
 # ---------------- USB-C + CH224K
 for p in ['A4', 'A9', 'B4', 'B9']: expect('J1', p, 'VBUS')
@@ -107,9 +108,9 @@ expect('U5', '1', 'VIN_LDO'); expect('U5', '2', '+3V3'); expect('U5', '3', 'GND'
 two('C29', 'VIN_LDO', 'GND'); two('C30', '+3V3', 'GND')
 
 # ---------------- MCU
-for p, net in [('1', 'MCU_BOOT0'), ('2', 'I2C_SDA'), ('3', 'I2C_SCL'), ('4', 'MCU_NRST'), ('5', '+3V3'), ('6', 'CHG_INT_N'),
-               ('7', 'PD_PG'), ('8', 'CHG_EN'), ('9', 'BMS_ALERT'), ('10', 'BMS_BOOT'), ('11', 'VBUS_SENSE'),
-               ('12', 'LED_STATUS'), ('13', 'PWR_HOLD'), ('14', None), ('15', 'GND'), ('16', '+3V3'),
+for p, net in [('1', 'MCU_BOOT0'), ('2', 'I2C_SDA'), ('3', 'I2C_SCL'), ('4', 'MCU_NRST'), ('5', '+3V3'), ('6', 'CLED_C'),
+               ('7', 'CLED_A'), ('8', 'CHG_EN'), ('9', 'CLED_B'), ('10', 'BMS_BOOT'), ('11', 'VBUS_SENSE'),
+               ('12', 'LED_STATUS'), ('13', 'PWR_HOLD'), ('14', 'FAST_CHG_N'), ('15', 'GND'), ('16', '+3V3'),
                ('17', 'USB_DM'), ('18', 'USB_DP'), ('19', 'SWDIO'), ('20', 'SWCLK')]:
     expect('U6', p, net)
 two('R21', 'MCU_BOOT0', 'GND', '10k'); expect('JP1', '1', '+3V3'); expect('JP1', '2', 'MCU_BOOT0')
@@ -117,6 +118,10 @@ two('R22', 'VBUS', 'VBUS_SENSE', '100k'); two('R23', 'VBUS_SENSE', 'GND', '10k')
 two('R24', '+3V3', 'I2C_SCL', '4.7k'); two('R25', '+3V3', 'I2C_SDA', '4.7k'); two('C34', 'MCU_NRST', 'GND')
 two('R26', 'LED_STATUS', 'LED_G_A', '1k'); expect('D4', '2', 'LED_G_A'); expect('D4', '1', 'GND')
 for r in ['C31', 'C32', 'C33']: two(r, '+3V3', 'GND')
+expect('JP2', '1', 'FAST_CHG_N', 'fast-charge jumper'); expect('JP2', '2', 'GND')
+# cell LEDs: PA1/PA3/PA0 -> 100R -> wire pads A/B/C
+for r, m, n, tp in (('R27', 'CLED_A', 'LED_A', 'TP13'), ('R28', 'CLED_B', 'LED_B', 'TP14'), ('R29', 'CLED_C', 'LED_C', 'TP15')):
+    two(r, m, n, '100R', 'cell LED series resistor'); expect(tp, '1', n, 'cell LED wire pad')
 
 # ---------------- test pads
 for tp, net in (('TP5', 'SWDIO'), ('TP6', 'SWCLK'), ('TP7', '+3V3'), ('TP8', 'GND'), ('TP9', 'VBUS'),

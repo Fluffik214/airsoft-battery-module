@@ -9,7 +9,6 @@ b.zone('GND', B, OUTLINE, priority=0, thermal=False, clearance=0.2, name='GND_BO
 NO_STITCH = [
     (198.0, 101.2, 210.1, 116.5),      # back-side custom text area
     (100.0, 116.4, 236.0, 121.0),      # bottom-layer bus band
-    (215.4, 100.0, 236.0, 109.2),      # MAIN_P pads zone
     (100.0, 100.0, 108.0, 121.0),      # USB-C shell / holes
     (229.0, 100.0, 236.0, 121.0),      # right-end holes
 ]

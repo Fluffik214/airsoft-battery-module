@@ -6,7 +6,8 @@
 uint32_t SystemCoreClock = 8000000u;    // CMSIS global (no system_stm32f0xx.c here); set to 48 MHz in clock_init
 
 static volatile uint32_t g_ms;
-void SysTick_Handler(void) { g_ms++; }
+static void cled_scan(void);
+void SysTick_Handler(void) { g_ms++; cled_scan(); }
 uint32_t millis(void) { return g_ms; }
 // called while busy-waiting so USB keeps being serviced (main.c overrides it)
 __attribute__((weak)) void delay_hook(void) {}
@@ -51,9 +52,9 @@ static void gpio_init(void) {
     gpio_mode(GPIOA, PIN_CHG_EN, 1);
     gpio_mode(GPIOA, PIN_PWR_HOLD, 1);
     gpio_mode(GPIOA, PIN_BMS_BOOT, 3);
-    gpio_mode(GPIOA, PIN_CHG_INT_N, 0);
-    gpio_mode(GPIOA, PIN_PD_PG, 0);
-    gpio_mode(GPIOA, PIN_BMS_ALERT, 0);
+    gpio_mode(GPIOA, PIN_LED_A, 0);                                  // cell LED lines start hi-Z (all off)
+    gpio_mode(GPIOA, PIN_LED_B, 0);
+    gpio_mode(GPIOA, PIN_LED_C, 0);
     gpio_mode(GPIOA, PIN_VBUS_SENSE, 3);
     gpio_mode(GPIOB, PIN_FAST_N, 0);                                 // JP2 fast-charge jumper
     GPIOB->PUPDR = (GPIOB->PUPDR & ~(3u << (PIN_FAST_N * 2))) | (1u << (PIN_FAST_N * 2));   // pull-up
@@ -71,6 +72,31 @@ static void gpio_init(void) {
     }
 }
 void led_set(uint8_t percent) { if (percent > 100) percent = 100; TIM3->CCR1 = percent * 10u; }
+
+// ---------------------------------------------------------------- cell LEDs: 3 charlieplexed lines A, B, C
+// One 2-pin red/green LED per cell on the remote board: cell i sits between line i and line i+1
+// (cell 1 A-B, cell 2 B-C, cell 3 C-A), red anode on the first line, green anode on the second.
+// SysTick drives one line high per ms (3 ms frame); a lit LED's cathode line is driven low, the rest stay hi-Z.
+static const uint8_t CLED_LINE[3] = {PIN_LED_A, PIN_LED_B, PIN_LED_C};
+static volatile uint8_t cled;            // bit 2i = cell i red, bit 2i+1 = cell i green
+void cled_set(uint8_t mask) { cled = mask; }
+static void cled_scan(void) {
+    static uint8_t ph;
+    uint32_t hiz = 0;
+    for (int k = 0; k < 3; k++) hiz |= 3u << (CLED_LINE[k] * 2);
+    GPIOA->MODER &= ~hiz;                                           // all three lines off first
+    ph = (uint8_t)(ph == 2 ? 0 : ph + 1);
+    uint8_t m = cled, lo = 0;                                       // lo: lines to pull low, bit k = line k
+    if (m & (1u << (2 * ph))) lo |= 1u << ((ph + 1) % 3);           // red of cell ph: anode ph, cathode ph+1
+    uint8_t j = (uint8_t)((ph + 2) % 3);
+    if (m & (1u << (2 * j + 1))) lo |= 1u << j;                     // green of cell j: anode j+1 = ph, cathode j
+    if (!lo) return;
+    uint32_t bsrr = 1u << CLED_LINE[ph], out = 1u << (CLED_LINE[ph] * 2);
+    for (int k = 0; k < 3; k++)
+        if (lo & (1u << k)) { bsrr |= 1u << (CLED_LINE[k] + 16); out |= 1u << (CLED_LINE[k] * 2); }
+    GPIOA->BSRR = bsrr;
+    GPIOA->MODER |= out;
+}
 
 void bms_boot_pulse(void) {
     gpio_mode(GPIOA, PIN_BMS_BOOT, 1);

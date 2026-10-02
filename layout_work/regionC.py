@@ -79,10 +79,8 @@ b.track('REGN', [rg3, r8a], W_SIG)
 x21, y21 = P('U3', 21); x20, y20 = P('U3', 20); x19, y19 = P('U3', 19)
 x18, y18 = P('U3', 18); x17, y17 = P('U3', 17); x16, y16 = P('U3', 16)
 INT_X = 171.2
-b.track('CHG_INT_N', [(x21 + 0.2, y21), (INT_X, y21), (INT_X, LANE['CHG_INT_N'])], W_SIG)
-via_s('CHG_INT_N', INT_X, LANE['CHG_INT_N'])
-r9a, r9b = P('R9', 1), P('R9', 2)          # INT pull-up to +3V3, +3V3 tapped from its bus lane
-b.track('CHG_INT_N', [(INT_X, r9b[1]), r9b], W_SIG)
+r9a, r9b = P('R9', 1), P('R9', 2)          # INT pull-up to +3V3 (INT no longer goes to the MCU)
+b.track('CHG_INT_N', [(x21 + 0.2, y21), (INT_X, y21), (INT_X, r9b[1]), r9b], W_SIG)
 b.track('+3V3', [r9a, (r9a[0], LANE['+3V3'])], 0.25); via_s('+3V3', r9a[0], LANE['+3V3'])
 r4a = P('R4', 1)
 b.track('CHG_PROG', [(x20 + 0.2, y20), (r4a[0], y20), r4a], W_SIG)

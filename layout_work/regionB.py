@@ -20,10 +20,13 @@ b.track('+3V3', [(x5, y5 - 0.6), (x5, 108.0)], 0.25)
 b.via('+3V3', x5, 108.0, **VIA_S)
 b.track('+3V3', [(xv, 105.2), (x5, 108.0)], 0.3, B)
 
-# ---- PD_PG from CH224K, under the MCU body, into pin 7 ; R3 pull-up
+# ---- PD_PG: CH224K PG -> R3 pull-up only (no longer wired to the MCU)
 x10, y10 = P('U1', 10); x7, y7 = P('U6', 7)
-b.track('PD_PG', [(x10, y10), (122.0, y10), (122.5, 106.5), (x7 - 0.5, 106.5), (x7, 107.0), (x7, y7 - 0.6)], W_SIG)
-xr, yr = P('R3', 2); b.track('PD_PG', [(xr, yr), (xr, 106.5)], W_SIG)
+xr, yr = P('R3', 2); b.track('PD_PG', [(x10, y10), (xr - 0.5, y10), (xr, y10 - 0.5), (xr, yr)], W_SIG)
+# ---- CLED_A (pin 7, PA1): under the MCU body, west, down to a via, bottom layer to the LED pads (regionG)
+CLA_V = (123.2, 108.8)
+b.track('CLED_A', [(x7, y7 - 0.6), (x7, 107.0), (x7 - 0.5, 106.5), (CLA_V[0] + 0.5, 106.5), (CLA_V[0], 107.0), CLA_V], W_SIG)
+b.via('CLED_A', *CLA_V, **VIA_S)
 xr, yr = P('R3', 1); b.track('+3V3', [(xr, yr), (123.4, yr)], 0.25); b.via('+3V3', 123.4, yr, **VIA_S)
 b.track('+3V3', [(123.4, yr), (123.4, 108.0)], 0.3, B)        # joins the +3V3 bottom run at y 108
 
@@ -46,8 +49,8 @@ xc, yc = P('C32', 2); b.track('GND', [(xc, yc), (127.35, 115.45)], 0.3); b.via('
 # bus: top verticals down to a staggered via row, then bottom-layer lanes east along the bottom edge
 LANE = {'+3V3': 116.8, 'BMS_BOOT': 117.35, 'BMS_ALERT': 117.9, 'CHG_EN': 118.45, 'CHG_INT_N': 119.0,
         'I2C_SCL': 119.55, 'I2C_SDA': 120.1}
-FAN = [('I2C_SDA', 2, 115.6), ('I2C_SCL', 3, 114.9), ('CHG_INT_N', 6, 115.6),
-       ('CHG_EN', 8, 114.9), ('BMS_ALERT', 9, 115.6), ('BMS_BOOT', 10, 114.9)]
+FAN = [('I2C_SDA', 2, 115.6), ('I2C_SCL', 3, 114.9),
+       ('CHG_EN', 8, 114.9), ('BMS_BOOT', 10, 114.9)]
 LEND = {'I2C_SDA': 182.0, 'I2C_SCL': 182.6, 'CHG_INT_N': 171.2, 'CHG_EN': 159.05, 'BMS_ALERT': 184.5,
         'BMS_BOOT': 183.3, '+3V3': 184.28}
 for net, pin, vy in FAN:

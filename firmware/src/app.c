@@ -54,6 +54,17 @@ static uint32_t sess_t0, sess_mas, t_prev_tick;     // mA*s charged
 static uint16_t sess_from_mv;
 static int16_t  sess_peak_dc;
 static uint8_t bal_mask;
+// Clean cell readings. The pack is charged through its balance plug, so the charge current flows in the
+// pin 1 and pin 4 wires and cell 1 / cell 3 read high by the wire drop while it flows. Every MEAS_EVERY_MS
+// the charger is paused (/CE only, its settings stay) for MEAS_TICKS app ticks and the cells are read with
+// no current. cv[] holds those readings and every charge, balance and LED decision uses it.
+#define MEAS_EVERY_MS   10000u
+#define MEAS_NEAR_MS    4000u   // near the top (highest cell within 50 mV of the target): measure more often
+#define MEAS_TICKS      3       // 3 x 250 ms: the BQ76920 converts every 250 ms, so the third reading is clean
+#define LIVE_MAX_MV     4300u   // a live reading this high is a fault even with the wire drop in it
+static uint16_t cv[3];
+static uint8_t  meas_left;      // > 0: charger paused for a clean measurement
+static uint32_t t_meas;
 static uint32_t t_unplug, t_last_bal, t_last_cfg, t_last_wake, t_report, t_kick;
 static uint16_t applied_vreg, applied_ichg, applied_iin;
 
@@ -89,12 +100,13 @@ void app_fast(void) {
 }
 
 // ---------------------------------------------------------------- helpers
-static uint16_t cmax(void) { uint16_t m = 0; for (int i = 0; i < 3; i++) if (bms.cell_mv[i] > m) m = bms.cell_mv[i]; return m; }
-static uint16_t cmin(void) { uint16_t m = 0xFFFF; for (int i = 0; i < 3; i++) if (bms.cell_mv[i] < m) m = bms.cell_mv[i]; return m; }
-static int imax(void) { int k = 0; for (int i = 1; i < 3; i++) if (bms.cell_mv[i] > bms.cell_mv[k]) k = i; return k; }
-static uint8_t pack_soc(void) {
+static uint16_t cmax(void) { uint16_t m = 0; for (int i = 0; i < 3; i++) if (cv[i] > m) m = cv[i]; return m; }
+static uint16_t cmin(void) { uint16_t m = 0xFFFF; for (int i = 0; i < 3; i++) if (cv[i] < m) m = cv[i]; return m; }
+static int imax(void) { int k = 0; for (int i = 1; i < 3; i++) if (cv[i] > cv[k]) k = i; return k; }
+static uint16_t live_max(void) { uint16_t m = 0; for (int i = 0; i < 3; i++) if (bms.cell_mv[i] > m) m = bms.cell_mv[i]; return m; }
+static uint8_t pack_soc(void) {     // cv[] is taken with no current flowing, so no IR correction
     uint32_t s = 0;
-    for (int i = 0; i < 3; i++) s += soc_from_mv(soc_rest_mv(bms.cell_mv[i], charging ? chg.ibat_ma : 0));
+    for (int i = 0; i < 3; i++) s += soc_from_mv(cv[i]);
     return (uint8_t)(s / 3);
 }
 
@@ -113,7 +125,7 @@ static void charger_apply(uint16_t target_cell_mv) {
 static void set_charging(bool on, uint16_t target_cell_mv) {
     if (on) { bq25798_hiz(false); charger_apply(target_cell_mv); }
     if (on != charging) bq25798_enable(on);
-    pin_write(PIN_CHG_EN, on);
+    pin_write(PIN_CHG_EN, on && !meas_left);    // paused while a clean cell measurement runs
     charging = on;
 }
 
@@ -123,6 +135,7 @@ static void shutdown_now(void) {
     bq76920_ship();                     // ~0.6 uA
     bq25798_shutdown();                 // ~0.5 uA (only accepted with no adapter, which is the case here)
     led_set(0);
+    cled_set(0);
     pin_write(PIN_PWR_HOLD, 0);         // our own power goes away now
     while (1) {}                        // if power stays (USB re-plugged) the watchdog reboots us
 }
@@ -151,13 +164,19 @@ void app_tick(void) {
     if (chg_ok) { if (!bq25798_read(&chg)) chg_ok = false; }
     if (now - t_kick > 1000) { bq25798_kick(); t_kick = now; }
 
+    // ---- clean cell voltages: live when no charge current flows, else the reading at the end of a pause
+    if (bms.present) {
+        if (!charging) { memcpy(cv, bms.cell_mv, sizeof cv); meas_left = 0; t_meas = now; }
+        else if (meas_left && --meas_left == 0) { memcpy(cv, bms.cell_mv, sizeof cv); t_meas = now; }
+    }
+
     // ---- safety evaluation
     faults = 0;
     if (!bms.present) faults |= F_BMS;
     else {
         uint16_t hi = cmax(), lo = cmin();
         if (bms.pack_mv < 6000) faults |= F_NOBATT;
-        if (hi > 4250 || hi > cfg.vcell_mv + 50) faults |= F_CELL_OV;
+        if (hi > 4250 || hi > cfg.vcell_mv + 50 || live_max() > LIVE_MAX_MV) faults |= F_CELL_OV;
         if (lo < 2500 && !(faults & F_NOBATT)) faults |= F_CELL_UV;
         if (hi - lo > cfg.imb_max_mv && !(faults & F_NOBATT)) faults |= F_IMBAL;
         if (bms.temp_dc > cfg.tmax_c * 10) faults |= F_HOT;
@@ -220,6 +239,12 @@ void app_tick(void) {
         if (cfg.mode == MODE_STORAGE && lo >= target - 20) want = false;
     }
     if (src == SRC_LOW) bq25798_hiz(true);                      // phone / 5 V: do not drain the source
+    // pause for a clean cell measurement every few seconds while charging (sooner if a live reading looks high)
+    if (want && charging && !meas_left) {
+        uint32_t every = cmax() + 50 >= target ? MEAS_NEAR_MS : MEAS_EVERY_MS;
+        bool high = live_max() >= target + CELL_MAX_OVER + 50 && now - t_meas >= 1000;
+        if (now - t_meas >= every || high) meas_left = MEAS_TICKS;
+    }
     set_charging(want, target);
 
     // ---- balancing (decided every 2 s)
@@ -234,7 +259,7 @@ void app_tick(void) {
                 int k = imax();
                 m = (uint8_t)(1u << k);
                 int other = (k == 0) ? 2 : (k == 2 ? 0 : -1);   // cells 1 and 3 may bleed together
-                if (other >= 0 && bms.cell_mv[other] > lo + cfg.bal_th_mv) m |= (uint8_t)(1u << other);
+                if (other >= 0 && cv[other] > lo + cfg.bal_th_mv) m |= (uint8_t)(1u << other);
             }
         }
         // bms.bal_mask is read back from the chip: it clears CELLBALx on its own after some events
@@ -310,6 +335,23 @@ void app_led(void) {
         default: v = 0;
     }
     led_set((uint8_t)v);
+
+    // cell LEDs (remote board): on only while a charger is plugged in and a charge (or storage run) is active.
+    // red = cell still below its target, green = cell at its target; all red blinking = fault.
+    uint8_t m = 0;
+    if (src == SRC_HV && cfg.mode != MODE_MONITOR && state != ST_ARMING) {
+        if (state == ST_FAULT) {
+            if ((t / 250) & 1) m = 0x15;                                    // red of all three cells
+        } else if (bms.present) {
+            uint16_t tgt = target_mv();
+            for (int i = 0; i < 3; i++) {
+                bool at = full || cv[i] + CELL_FULL_AT >= tgt;
+                if (cfg.mode == MODE_STORAGE) at = cv[i] + CELL_FULL_AT >= tgt && cv[i] <= tgt + 20;
+                m |= (uint8_t)(1u << (2 * i + (at ? 1 : 0)));
+            }
+        }
+    }
+    cled_set(m);
 }
 
 // ---------------------------------------------------------------- tiny JSON writer
@@ -337,8 +379,8 @@ void app_status_json(char *buf, int n) {
     kv(&w, "vbus", vbus); kv(&w, "ibus", chg_ok ? chg.ibus_ma : 0);
     kv(&w, "pack", bms.present ? bms.pack_mv : (chg_ok ? chg.vbat_mv : 0));
     kv(&w, "ibat", chg_ok ? chg.ibat_ma : 0);
-    js(&w, ",\"c\":["); for (int i = 0; i < 3; i++) { if (i) js(&w, ","); ji(&w, bms.cell_mv[i]); } js(&w, "]");
-    js(&w, ",\"p\":["); for (int i = 0; i < 3; i++) { if (i) js(&w, ","); ji(&w, soc_from_mv(soc_rest_mv(bms.cell_mv[i], charging ? chg.ibat_ma : 0))); } js(&w, "]");
+    js(&w, ",\"c\":["); for (int i = 0; i < 3; i++) { if (i) js(&w, ","); ji(&w, cv[i]); } js(&w, "]");
+    js(&w, ",\"p\":["); for (int i = 0; i < 3; i++) { if (i) js(&w, ","); ji(&w, soc_from_mv(cv[i])); } js(&w, "]");
     kv(&w, "soc", pack_soc());
     kv(&w, "tp", bms.temp_dc); kv(&w, "tc", chg_ok ? chg.tdie_dc : 0);
     kv(&w, "bal", bal_mask); kv(&w, "flt", faults); kv(&w, "chg", charging);

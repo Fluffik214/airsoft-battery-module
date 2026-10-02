@@ -2,10 +2,10 @@
 #pragma once
 
 // GPIOA
-#define PIN_CHG_INT_N   0   // PA0  in  : BQ25798 /INT (open drain, 10k pull-up)
-#define PIN_PD_PG       1   // PA1  in  : CH224K PG (low = PD contract ok)
+#define PIN_LED_C       0   // PA0  led : cell LED line C (charlieplexed, 100R R29 -> pad TP15)
+#define PIN_LED_A       1   // PA1  led : cell LED line A (100R R27 -> pad TP13)
 #define PIN_CHG_EN      2   // PA2  out : high -> Q1 pulls BQ25798 /CE low -> charging allowed
-#define PIN_BMS_ALERT   3   // PA3  in  : BQ76920 ALERT (1M pull-down)
+#define PIN_LED_B       3   // PA3  led : cell LED line B (100R R28 -> pad TP14)
 #define PIN_BMS_BOOT    4   // PA4  out : pulse high ~5 ms to boot BQ76920 from SHIP (via 1k into TS1)
 #define PIN_VBUS_SENSE  5   // PA5  adc : VBUS / 11 (100k / 10k divider) -> ADC_IN5
 #define PIN_LED         6   // PA6  pwm : green status LED (TIM3_CH1, AF1)
@@ -23,4 +23,4 @@
 #define I2C_ADDR_BQ76920 0x08    // BQ7692003: 3.3 V REGOUT, address 0x08, CRC enabled
 
 #define FW_VERSION      "1.0.0"
-#define HW_VERSION      "RevA"
+#define HW_VERSION      "RevB"   // RevB: pack on the balance plug only (no Deans pads), cell LED pads

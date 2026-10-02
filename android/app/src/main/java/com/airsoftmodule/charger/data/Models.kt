@@ -117,7 +117,7 @@ enum class ConfigKey(val key: String, val min: Int, val max: Int, val step: Int,
 
 enum class Fault(val bit: Int, val title: String, val detail: String, val fix: String, val blocking: Boolean = true) {
     NO_BATT(1 shl 0, "No battery", "The pack voltage is too low to be a connected 3S pack.",
-        "Plug in both the Deans lead and the balance lead."),
+        "Plug in the balance lead (white JST-XH plug). The pack charges through it."),
     CELL_OV(1 shl 1, "Cell over-voltage", "A cell is above the safe maximum.",
         "Charging is stopped. If it stays, the cell may be damaged: measure it with a multimeter."),
     CELL_UV(1 shl 2, "Cell deeply discharged", "A cell is below 2.5 V, so charging is refused.",

@@ -210,8 +210,8 @@ place('Battery_Management:BQ76920PW', 'U', 'BQ7692003PWR', 'Package_SO:TSSOP-20_
 r = row(405.13, 160.02)
 x, y = next(r); place('Connector_Generic:Conn_01x04', 'J', 'BALANCE 3S (JST-XH 4P)',
                       'Connector_JST:JST_XH_S4B-XH-SM4-TB_1x04-1MP_P2.50mm_Horizontal', x + 5.08, y,
-                      {'1': 'GND', '2': 'CELL1_P', '3': 'CELL2_P', '4': 'PACK_P'}, ref='J2',
-                      props={'MPN': 'JST S4B-XH-SM4-TB', 'Note': 'Pin1 = pack NEGATIVE (black). CHECK your pack!'})
+                      {'1': 'PACK_P', '2': 'CELL2_P', '3': 'CELL1_P', '4': 'GND'}, ref='J2',
+                      props={'MPN': 'JST S4B-XH-SM4-TB', 'Note': 'Pin4 = pack NEGATIVE (black), pin1 = pack + (red): set by the pack plug'})
 next(r)
 x, y = next(r); R('100R', 'PACK_P', 'BMS_BAT', x, y, fp='R0603', props={'Note': 'Rf supply filter'})
 x, y = next(r); C('10uF 25V', 'BMS_BAT', 'GND', x, y, fp='C0805', props={'Note': 'Cf supply filter'})
@@ -236,7 +236,7 @@ x, y = next(r); place('power:PWR_FLAG', '#FLG', 'PWR_FLAG', '', x, y, {'1': 'PAC
 text("3S per datasheet Table 9-2: VC5-VC4 = cell3, VC4=VC3=VC2 shorted, VC2-VC1 = cell2, VC1-VC0 = cell1.\n"
      "Rc=56R / Cc=1uF cell filters -> ~37mA internal balancing (datasheet min Rc 40R, max 50mA) (never balance adjacent cells together).\n"
      "SRP/SRN to VSS (no coulomb counter), CHG/DSG unused. Sits in SHIP mode (~0.6uA) when idle.\n"
-     "Balance lead = SENSE ONLY (charging goes through the Deans main lead), so readings stay accurate.",
+     "Balance lead also carries the charge current (pins 1 and 4): firmware pauses charging before each cell reading.",
      404, 22, 1.4)
 
 # ================================================================= BLOCK D: MCU power path
@@ -267,7 +267,7 @@ box(200, 225, 395, 410, "5. MCU  STM32F042F6P6 (TSSOP-20, USB FS, DFU)")
 place('MCU_ST_STM32F0:STM32F042F6Px', 'U', 'STM32F042F6P6', 'Package_SO:TSSOP-20_4.4x6.5mm_P0.65mm',
       297.18, 299.72,
       {'1': 'MCU_BOOT0', '2': 'I2C_SDA', '3': 'I2C_SCL', '4': 'MCU_NRST', '5': '+3V3',
-       '6': 'CHG_INT_N', '7': 'PD_PG', '8': 'CHG_EN', '9': 'BMS_ALERT', '10': 'BMS_BOOT',
+       '6': 'CLED_C', '7': 'CLED_A', '8': 'CHG_EN', '9': 'CLED_B', '10': 'BMS_BOOT',
        '11': 'VBUS_SENSE', '12': 'LED_STATUS', '13': 'PWR_HOLD', '14': 'FAST_CHG_N', '15': 'GND', '16': '+3V3',
        '17': 'USB_DM', '18': 'USB_DP', '19': 'SWDIO', '20': 'SWCLK'},
       props={'MPN': 'ST STM32F042F6P6'}, ref='U6')
@@ -291,24 +291,25 @@ next(r); x, y = next(r); place('Jumper:SolderJumper_2_Open', 'JP', 'FAST CHARGE'
                       x + 5.08, y, {'1': 'FAST_CHG_N', '2': 'GND'}, ref='JP2',
                       props={'Note': 'open (default) = slow charge, bridged = fast charge. PB1 internal pull-up.'})
 text("PF0/PF1 = I2C1 SDA/SCL (AF1). PA11/PA12 remapped onto pins 17/18 for USB (SYSCFG PA11_PA12_RMP).\n"
-     "PA0 /INT charger, PA1 PD_PG, PA2 CHG_EN, PA3 ALERT, PA4 BMS boot, PA5 VBUS/11 ADC, PA6 LED, PA7 PWR_HOLD.\n"
+     "PA1/PA3/PA0 = charlieplexed cell LEDs A/B/C (pads TP13-15). Charger /INT, CH224K PG and BMS ALERT are not\n"
+     "wired to the MCU (firmware polls I2C). PA2 CHG_EN, PA4 BMS boot, PA5 VBUS/11 ADC, PA6 LED, PA7 PWR_HOLD.\n"
      "PB1 = FAST_CHG_N (JP2 to GND, internal pull-up): open = slow charge (default), bridged = fast charge.\n"
      "Bridge JP1 + plug USB = ST ROM DFU bootloader. Backup: ST-Link on test pads TP5 SWDIO, TP6 SWCLK, TP7 3V3, TP8 GND.",
      204, 237, 1.4)
 
-# ================================================================= BLOCK F: battery / gun power
-box(400, 225, 580, 372, "6. BATTERY + GUN (Deans T-plug pass-through)")
+# ================================================================= BLOCK F: charge path (balance plug only)
+box(400, 225, 580, 372, "6. CHARGE PATH (through the balance plug J2)")
+refcount['TP'] = 4          # TP1-TP4 were the Deans wire pads (removed); keep the TP5.. numbering
 r = row(410.21, 290.83, step=17.78)
-for lbl, net in [('BATT IN +', 'MAIN_P'), ('GUN OUT +', 'MAIN_P'), ('BATT IN -', 'GND'), ('GUN OUT -', 'GND')]:
-    x, y = next(r)
-    place('Connector:TestPoint', 'TP', lbl, 'Connector_Wire:SolderWirePad_1x01_SMD_3x6mm', x, y, {'1': net})
-next(r); x, y = next(r); place('Device:Fuse_Small', 'F', '3A 32V fast', 'Fuse:Fuse_1206_3216Metric', x, y,
-                      {'1': 'MAIN_P', '2': 'BAT_P'}, ref='F1', props={'MPN': 'Littelfuse 1206SFF300F/32 (any 3A >=32V 1206 fast fuse)'})
-text("Deans pigtail from the battery -> BATT IN pads, Deans pigtail to the gun -> GUN OUT pads.\n"
-     "Place each IN/OUT pair side by side and join them with a short, solid copper pour on BOTH\n"
-     "layers + stitching vias (or solder both wires to one pad): gun current never crosses the board.\n"
-     "Charger taps MAIN_P through F1 (3A). Balance plug J2 is sense-only.\n"
-     "Field check: unplug from the gun, plug a phone (USB-C OTG) into the same USB-C port ->\n"
+x, y = next(r); place('Device:Fuse_Small', 'F', '2.5A 32V fast', 'Fuse:Fuse_1206_3216Metric', x, y,
+                      {'1': 'PACK_P', '2': 'BAT_P'}, ref='F1',
+                      props={'MPN': 'AEM F1206SB2500V032TM (LCSC C310999), 2.5A fast, 50A breaking'})
+text("The pack connects ONLY through the JST-XH balance plug J2 (no Deans / main-lead pads).\n"
+     "Charge current: J2 pin 1 (pack +) -> F1 2.5A fast -> BAT_P (charger), return via J2 pin 4 (GND).\n"
+     "J2 pin order follows the pack's plug: its black wire lands on header pin 4 (checked on the real pack).\n"
+     "F1 protects the thin balance wires: a board short would otherwise burn them inside the stock.\n"
+     "Max charge 1.4 A (JP2 bridged). JST-XH is rated 3 A on AWG22; keep 26 AWG leads at <= ~2 A.\n"
+     "Field check: plug a phone (USB-C OTG) into the USB-C port ->\n"
      "MCU wakes on the phone's 5V, reports V + % per cell over USB; charges only at 12-17 V.",
      404, 318, 1.4)
 
@@ -327,6 +328,20 @@ for lbl, net in [('SWDIO', 'SWDIO'), ('SWCLK', 'SWCLK'), ('3V3', '+3V3'), ('GND'
     place('Connector:TestPoint', 'TP', 'TP ' + lbl, 'TestPoint:TestPoint_Pad_D1.0mm', x, y, {'1': net})
 text("TP5-TP8: SWD programming / rescue (ST-Link: SWDIO, SWCLK, 3V3, GND) on the back. TP9-TP12: VBUS, BAT, I2C SDA, I2C SCL probe pads.",
      404, 312, 1.4)
+
+# ================================================================= BLOCK G: cell LEDs (remote board)
+box(400, 376, 580, 416, "7. CELL LEDs (3 wire pads near the USB-C, charlieplexed)")
+r = row(410.21, 396.24, step=10.16)
+for mcu_net, pad_net in (('CLED_A', 'LED_A'), ('CLED_B', 'LED_B'), ('CLED_C', 'LED_C')):
+    x, y = next(r); R('100R', mcu_net, pad_net, x, y, props={'Note': 'cell LED line (charlieplexed)'})
+for net in ('LED_A', 'LED_B', 'LED_C'):
+    x, y = next(r)
+    place('Connector:TestPoint', 'TP', net, 'TestPoint:TestPoint_Pad_D1.5mm', x, y, {'1': net})
+text("Remote LED board: three 2-pin red/green bi-colour LEDs (one per cell), wired in a triangle:\n"
+     "cell 1 between LED_A-LED_B, cell 2 between LED_B-LED_C, cell 3 between LED_C-LED_A.\n"
+     "Red LED anode on the first pad of the pair, green anode on the second. 3 wires, no GND wire.\n"
+     "Red = cell charging, green = cell full; lit only while charging. ~6 mA peak, 1/3 duty.",
+     404, 400, 1.4)
 
 # ================================================================= emit
 def lib_symbols_sexpr():

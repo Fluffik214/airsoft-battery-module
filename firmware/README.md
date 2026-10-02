@@ -217,6 +217,8 @@ The protocol is plain text lines ending in `\n`. Any terminal works at any baud 
 | `FAULT` | a blocking fault (see `flt`) | fast blink |
 | `UNPLUGGED` | no USB power, shutting down | off |
 
+**Cell LEDs (`led_board/`, wired to pads A/B/C):** one red/green LED per cell, lit only while a PD charger is connected and a charge or storage run is active (not while `ARMING`, not in `monitor` mode). Red = that cell is still below its target, green = the cell is at its target (within `CELL_FULL_AT`; in storage mode within +20 mV of it), all three red blinking = `FAULT`. Driven by `cled_set()`; the 1 ms SysTick does the charlieplex scan (`cled_scan()` in `hw.c`).
+
 ---
 
 ## 7. Main loop and timing (`main.c`)
@@ -252,6 +254,7 @@ loop:  wdg_feed · app_fast (17 V cut) · tud_task · read USB lines
 
 **Extra rules:**
 
+- **Clean cell readings (Rev B: the pack charges through its balance plug):** the charge current flows in balance-lead pins 1 and 4, so cell 1 and cell 3 read high by the wire drop while it flows. Every 10 s (`MEAS_EVERY_MS`; every 4 s, `MEAS_NEAR_MS`, once the highest cell is within 50 mV of the target) the charger is paused through /CE for 3 ticks (~0.75 s, `MEAS_TICKS`), and the cells are read with no current. Those readings (`cv[]` in `app.c`) drive every decision below, the balancing, the status `c`/`p` values and the cell LEDs. A live reading above 4.30 V (`LIVE_MAX_MV`) still trips `F_CELL_OV` at once, and a live reading > target + 60 mV starts a measurement early.
 - **Per-cell charge control (like a hobby balance charger):** the BQ25798 only sees the whole pack, so the firmware handles single cells:
   - **Hold:** if any cell reaches target + 10 mV (`CELL_MAX_OVER`), charging pauses at once. It resumes in short bursts when that cell is ≤ target + 2 mV.
   - **Taper:** when the highest cell is within 20 mV of the target (`CELL_TAPER_AT`) and the spread is > `balth`, the charge current drops by 25 % every 2 s, down to 50 mA (`ICHG_MIN_MA`). The full cell's bleed then keeps it level while the lower cells fill. The current steps back up by 100 mA every 2 s once the highest cell is 60 mV below the target.
@@ -318,6 +321,8 @@ To log something new, call `log_event(code, value)` or `log_once(code, value)` w
 | BQ7692003 | I²C 0x08 with CRC-8. Booted by a pulse on TS1 (`PIN_BMS_BOOT`). 3S wiring: cells are VC1−VC0, VC2−VC1, VC5−VC4. Cell input resistors R13–R16 = 56 Ω → ~37 mA balance current (datasheet min 40 Ω / max 50 mA). |
 | CH224K | Hard-wired for 15 V (CFG1 = 56 k). The firmware only *measures* VBUS (÷ 11 on PA5). |
 | JP2 | Solder jumper PB1 → GND (internal pull-up), on the back under U6. Open = slow (`ichs`), bridged = fast (`ichg`). Read every tick (`fast_jumper()` in `hw.c`). |
+| Cell LEDs | PA1 = line A, PA3 = line B, PA0 = line C, each through 100 Ω to pads TP13–TP15 (silk A/B/C). Charlieplexed: cell 1 LED between A–B, cell 2 between B–C, cell 3 between C–A; red anode on the first line, green on the second. The lines are hi-Z when off. |
+| Charge path | Rev B: the pack is connected only through the balance plug. Charge current: J2 pin 1 (pack +) → F1 (2.5 A) → BAT_P, return on J2 pin 4 (pack −). The charger /INT, CH224K PG and BMS ALERT are no longer wired to the MCU. |
 | Power | MCU 3.3 V from the AP7381 LDO. `PIN_PWR_HOLD` keeps it on from the pack after unplug, and it is dropped in `shutdown_now()`. |
 | Watchdog | IWDG ≈ 2 s. A hang resets the MCU, and the charger is disabled again until the firmware re-decides. |
 

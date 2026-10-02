@@ -1,7 +1,9 @@
 """Deterministic placement + hand-routing. kicad-python route.py base.kicad_pcb out.kicad_pcb out.json"""
 import sys
 import pcbnew
-sys.path.insert(0, r"C:/Users/duzik/AppData/Local/Temp/claude/C--Users-duzik-Desktop-usbc-pd-airsoft-module/2131d289-5de2-4718-9434-7cddff58af5b/scratchpad")
+import os
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
 from kb import Board, F, B, chamfer_corners, smooth_tees
 from place import PLACE, BACK
 
@@ -48,7 +50,9 @@ BMS = {
 PL.update(BMS)
 PL.update({
     'J2': (218.4, 110.6, 90),                      # opening faces the board end; plug body clears the M2 screws
-    'TP1': (224.4, 102.7, 90), 'TP2': (224.4, 106.6, 90), 'TP3': (224.4, 114.4, 90), 'TP4': (224.4, 118.3, 90),
+    'TP13': (113.0, 114.0, 0), 'TP14': (115.5, 114.0, 0), 'TP15': (118.0, 114.0, 0),     # cell LED wire pads
+    'R27': (113.0, 116.4, 90), 'R28': (115.5, 116.4, 90), 'R29': (118.0, 116.4, 90),
+    'JP2': (131.6, 105.2, 0),                     # fast-charge jumper (back, under U6) - placed by the user
     'TP5': (125.9, 102.6, 0), 'TP6': (123.9, 102.6, 0), 'TP7': (127.9, 102.6, 0), 'TP8': (129.9, 102.6, 0),
     'TP9': (114.5, 119.3, 0), 'TP10': (190.0, 101.3, 0), 'TP11': (181.2, 114.6, 0), 'TP12': (183.3, 114.7, 0),
 })
@@ -58,7 +62,8 @@ PL.update(OVR)
 b = Board(sys.argv[1])
 b.clear_routing()
 for ref, (x, y, r) in PL.items():
-    b.place(ref, x, y, r, back=ref in (BACK | {'C5', 'C6', 'C19', 'R5', 'TP5', 'TP6', 'TP7', 'TP8'}))
+    if ref not in b.fp: continue           # e.g. TP1-TP4 (Deans pads, removed)
+    b.place(ref, x, y, r, back=ref in (BACK | {'C5', 'C6', 'C19', 'R5', 'TP5', 'TP6', 'TP7', 'TP8', 'JP2'}))
 pad = b.pad
 # silkscreen: reference designators off the silk (kept on the Fab layer for assembly)
 for f in b.b.GetFootprints():
@@ -134,14 +139,15 @@ for dy in (-1.0, 0.0, 1.0):
 # TVS GND
 x, y = pad('D1', 2); b.via('GND', x, y - 1.0); b.track('GND', [(x, y), (x, y - 1.0)], 0.5)
 
-exec(open(r'C:/Users/duzik/AppData/Local/Temp/claude/C--Users-duzik-Desktop-usbc-pd-airsoft-module/2131d289-5de2-4718-9434-7cddff58af5b/scratchpad/regionB.py').read())
-exec(open(r'C:/Users/duzik/AppData/Local/Temp/claude/C--Users-duzik-Desktop-usbc-pd-airsoft-module/2131d289-5de2-4718-9434-7cddff58af5b/scratchpad/regionC.py').read())
-exec(open(r'C:/Users/duzik/AppData/Local/Temp/claude/C--Users-duzik-Desktop-usbc-pd-airsoft-module/2131d289-5de2-4718-9434-7cddff58af5b/scratchpad/regionD.py').read())
-exec(open(r'C:/Users/duzik/AppData/Local/Temp/claude/C--Users-duzik-Desktop-usbc-pd-airsoft-module/2131d289-5de2-4718-9434-7cddff58af5b/scratchpad/regionF.py').read())
+exec(open(os.path.join(HERE, 'regionB.py')).read())
+exec(open(os.path.join(HERE, 'regionC.py')).read())
+exec(open(os.path.join(HERE, 'regionD.py')).read())
+exec(open(os.path.join(HERE, 'regionF.py')).read())
+exec(open(os.path.join(HERE, 'regionG.py')).read())
 for _ in range(3):
     print('chamfered', chamfer_corners(b))
 print('tees smoothed', smooth_tees(b))
-exec(open(r'C:/Users/duzik/AppData/Local/Temp/claude/C--Users-duzik-Desktop-usbc-pd-airsoft-module/2131d289-5de2-4718-9434-7cddff58af5b/scratchpad/regionE.py').read())
+exec(open(os.path.join(HERE, 'regionE.py')).read())
 b.fill()
 b.save(sys.argv[2])
 b.dump(sys.argv[3])
