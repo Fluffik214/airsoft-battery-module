@@ -3449,9 +3449,9 @@
 			(uuid "43d4a77b-1540-4f24-a557-ea0769df74eb")
 		)
 		(embedded_fonts no)
-		(model "${KICAD10_3DMODEL_DIR}/Package_DFN_QFN.3dshapes/Texas_RQM0029A_VQFN-29_4x4mm_P0.4mm.step"
+		(model "${KIPRJMOD}/3dmodels/TI_BQ25798_VQFN-29_4x4mm.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0.014 -0.038 0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -12721,15 +12721,15 @@
 			(uuid "05938697-920e-4821-a578-9c983108abb8")
 		)
 		(embedded_fonts no)
-		(model "${KICAD10_3DMODEL_DIR}/Connector_USB.3dshapes/USB_C_Receptacle_HRO_TYPE-C-31-M-12.step"
+		(model "${KIPRJMOD}/3dmodels/USB_C_HRO_TYPE-C-31-M-12.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0.471 0)
 			)
 			(scale
 				(xyz 1 1 1)
 			)
 			(rotate
-				(xyz 0 0 0)
+				(xyz 0 0 180)
 			)
 		)
 	)
