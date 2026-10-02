@@ -22,6 +22,9 @@ class CdcConnection(
     private var epOut: UsbEndpoint? = null
     private val claimed = mutableListOf<UsbInterface>()
     @Volatile private var running = false
+    /** Android's name for the open device, used to match the DETACHED broadcast */
+    var deviceName: String? = null
+        private set
 
     fun open(device: UsbDevice): String? {
         var comm: UsbInterface? = null
@@ -51,6 +54,7 @@ class CdcConnection(
         c.controlTransfer(0x21, 0x20, 0, commIdx, coding, coding.size, 500)
         c.controlTransfer(0x21, 0x22, 0x03, commIdx, null, 0, 500)
         conn = c
+        deviceName = device.deviceName
         running = true
         thread(name = "cdc-rx", isDaemon = true) { readLoop(c) }
         return null
@@ -59,11 +63,12 @@ class CdcConnection(
     private fun readLoop(c: UsbDeviceConnection) {
         val buf = ByteArray(64)
         val line = StringBuilder()
-        var failures = 0
+        var fastFails = 0
         while (running) {
+            val t0 = System.nanoTime()
             val n = c.bulkTransfer(epIn, buf, buf.size, 250)
             if (n > 0) {
-                failures = 0
+                fastFails = 0
                 for (i in 0 until n) {
                     val ch = buf[i].toInt().toChar()
                     when (ch) {
@@ -73,8 +78,11 @@ class CdcConnection(
                     }
                 }
             } else if (n < 0) {
-                // a timeout also returns -1; only treat many in a row (with the device gone) as fatal
-                if (++failures > 40 && !running) break
+                // a timeout also returns -1 but only after ~250 ms; a device that is gone fails instantly
+                if ((System.nanoTime() - t0) < 50_000_000L) {
+                    if (++fastFails >= 20) { if (running) close(); break }
+                    Thread.sleep(20)
+                } else fastFails = 0
             }
         }
     }
@@ -93,6 +101,7 @@ class CdcConnection(
         return true
     }
 
+    @Synchronized
     fun close(error: String? = null) {
         if (!running && conn == null) return
         running = false

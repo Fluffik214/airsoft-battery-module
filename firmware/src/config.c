@@ -2,7 +2,7 @@
 #include "config.h"
 #include "hw.h"
 
-#define CFG_MAGIC 0xA15F
+#define CFG_MAGIC 0xA160
 extern const uint8_t _config_page[];      // linker: last flash page
 config_t cfg;
 
@@ -15,7 +15,7 @@ static uint16_t crc16(const uint8_t *p, uint32_t n) {
 void config_defaults(void) {
     memset(&cfg, 0, sizeof cfg);
     cfg.magic = CFG_MAGIC;
-    cfg.vcell_mv = 4200; cfg.ichg_ma = 1400; cfg.iin_ma = 2000; cfg.storage_mv = 3800;
+    cfg.vcell_mv = 4200; cfg.ichg_ma = 1400; cfg.iin_ma = 1500; cfg.storage_mv = 3800;
     cfg.bal_min_mv = 3900; cfg.minvin_mv = 12000; cfg.imb_max_mv = 300; cfg.capacity_mah = 1450;
     cfg.rate_ms = 500; cfg.bal_th_mv = 15; cfg.tmax_c = 45; cfg.led_pct = 40; cfg.bal_en = 1;
     cfg.mode = MODE_CHARGE; cfg.bal_unplug_min = 0;

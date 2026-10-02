@@ -23,6 +23,7 @@ static void clock_init(void) {
     FLASH->ACR = FLASH_ACR_PRFTBE | FLASH_ACR_LATENCY;            // 1 wait state for 48 MHz
     RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_SW) | RCC_CFGR_SW_HSI48;
     while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_HSI48) {}
+    RCC->APB1ENR |= RCC_APB1ENR_USBEN;                              // USB peripheral clock (USBSW=0: HSI48); TinyUSB does not do this
     RCC->APB1ENR |= RCC_APB1ENR_CRSEN;                              // clock recovery: trim HSI48 to USB SOF
     CRS->CFGR = (CRS->CFGR & ~CRS_CFGR_SYNCSRC) | CRS_CFGR_SYNCSRC_1;
     CRS->CR |= CRS_CR_AUTOTRIMEN | CRS_CR_CEN;

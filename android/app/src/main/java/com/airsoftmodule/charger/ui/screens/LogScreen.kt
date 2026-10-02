@@ -147,7 +147,7 @@ fun LogScreen(vm: ChargerViewModel, onBack: () -> Unit) {
                         }
                     }
                 }
-                items(list, key = { "${it.boot}-${it.seconds}-${it.code}-${it.value}" }) { e ->
+                items(list, key = { it.idx }) { e ->
                     val r = reports[e.boot]
                     val extra = if (r != null && (e.kind == EventKind.CHARGE_DONE || e.kind == EventKind.CHARGE_UNPLUG))
                         listOfNotNull(r.mAh?.let { "+$it mAh" }, r.minutes?.let { "$it min" }, r.peakDc?.let { "peak %.1f °C".format(it / 10.0) }).joinToString(" · ")

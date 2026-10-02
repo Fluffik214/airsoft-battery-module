@@ -237,7 +237,8 @@ void app_tick(void) {
                 if (other >= 0 && bms.cell_mv[other] > lo + cfg.bal_th_mv) m |= (uint8_t)(1u << other);
             }
         }
-        if (m != bal_mask) { bq76920_balance(m); bal_mask = m; }
+        // bms.bal_mask is read back from the chip: it clears CELLBALx on its own after some events
+        if (m != bal_mask || (bms.present && m != bms.bal_mask)) { bq76920_balance(m); bal_mask = m; }
     }
 
     // ---- charge session bookkeeping

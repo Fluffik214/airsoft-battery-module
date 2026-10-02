@@ -39,7 +39,7 @@ Charging is decided by **the USB voltage only**:
 
 - **Phone:** it gives 5 V, so the module never charges from it. It only answers the app's requests (`s?`, `c?`, `log?` …). Talking to the app does **not** affect charging any more; `host` is just information.
 - **PD charger:** 15 V lands in the window, and after 5 s the module charges to the preset % and stops.
-- **Over-voltage:** `app_fast()` runs on every main-loop pass, not just every 250 ms. After 3 readings in a row above 17 V it drops `CHG_EN`, which switches the charger off in hardware through Q1 and /CE.
+- **Over-voltage:** `app_fast()` runs on every main-loop pass, not just every 250 ms. After 3 readings in a row above 17 V it drops `CHG_EN`, which switches the charger off in hardware through Q1 and /CE. As a second layer, the BQ25798's own input over-voltage cutoff is set to 18 V (`VAC_OVP`, re-applied every 5 s).
 
 > The limit is `VBUS_MAX_MV` = 17000 in `board.h`. PD chargers may give up to 15.75 V when asked for 15 V, which leaves about 1.2 V of margin for ADC error.
 
@@ -121,7 +121,7 @@ All settings are set with `set <key> <value>`, and `save` writes them to flash. 
 | `vcell` | full-charge voltage per cell | 4200 | 4000–4200 | mV |
 | `ichs` | **slow** charge current, used while JP2 is open (default) | 700 | 100–3000 | mA |
 | `ichg` | **fast** charge current, used when JP2 is bridged | 1400 | 100–3000 | mA |
-| `iin` | USB input current limit | 2000 | 500–3000 | mA |
+| `iin` | USB input current limit (1.5 A keeps an 18 W 12 V charger and a 20 W 15 V charger within rating) | 1500 | 500–3000 | mA |
 | `stor` | storage voltage per cell | 3800 | 3700–3900 | mV |
 | `minvin` | lower edge of the charging window (the upper edge is `VBUS_MAX_MV` = 17 V in `board.h`) | 12000 | 9000–15000 | mV |
 | `bal` | balancing on/off | 1 | 0–1 | |

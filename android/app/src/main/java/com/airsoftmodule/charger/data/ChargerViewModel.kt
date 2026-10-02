@@ -16,7 +16,9 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.airsoftmodule.charger.usb.CdcConnection
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -82,7 +84,8 @@ class ChargerViewModel(app: Application) : AndroidViewModel(app) {
                 UsbManager.ACTION_USB_DEVICE_ATTACHED -> if (_link.value !is Link.Demo) connect()
                 UsbManager.ACTION_USB_DEVICE_DETACHED -> {
                     val dev = intent.usbDevice()
-                    if (dev == null || CdcConnection.isCharger(dev)) cdc?.close()
+                    val c = cdc
+                    if (c != null && (dev == null || dev.deviceName == c.deviceName)) c.close()
                 }
             }
         }
@@ -96,11 +99,12 @@ class ChargerViewModel(app: Application) : AndroidViewModel(app) {
         }
         ContextCompat.registerReceiver(app, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
         // single writer: commands go out one by one with a small gap so the module's line buffer never overflows
-        viewModelScope.launch {
+        // USB writes block (bulkTransfer), so they run on the IO dispatcher, never on the UI thread
+        viewModelScope.launch(Dispatchers.IO) {
             for (cmd in outbox) {
                 log(true, cmd)
                 val d = demo
-                if (d != null) d.command(cmd)
+                if (d != null) withContext(Dispatchers.Main) { d.command(cmd) }   // demo state lives on Main
                 else if (cdc?.write(cmd + "\n") != true) _messages.tryEmit("Not connected")
                 delay(40)
             }
@@ -204,7 +208,7 @@ class ChargerViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun refreshLog() {
-        logBuf.clear()
+        synchronized(logBuf) { logBuf.clear() }
         _logLoading.value = true
         send("log?")
     }
@@ -253,11 +257,15 @@ class ChargerViewModel(app: Application) : AndroidViewModel(app) {
                 if (o.optString("m") == "save" && expectingSave) { expectingSave = false; _messages.tryEmit("Settings saved to the module") }
             }
             "err" -> { log(false, line); _messages.tryEmit("Module: " + o.optString("m")) }
-            "log" -> logBuf += LogEntry(o.optInt("b"), o.optInt("s"), o.optInt("c"), o.optInt("v"))
+            "log" -> {
+                val e = LogEntry(o.optInt("b"), o.optInt("s"), o.optInt("c"), o.optInt("v"))
+                // skip entries half-written by a power cut (erased flash reads back as 0xFF..)
+                synchronized(logBuf) { if (e.boot != 0xFFFF && e.code != 0xFF) logBuf += e.copy(idx = logBuf.size) }
+            }
             "logend" -> {
                 logBoot = o.optInt("boot")
-                _log.value = logBuf.toList()
-                lastLogCount = logBuf.size
+                _log.value = synchronized(logBuf) { logBuf.toList() }
+                lastLogCount = o.optInt("n", _log.value.size)
                 _logLoading.value = false
             }
             else -> log(false, line)

@@ -14,6 +14,8 @@ enum {
 #define EN_HIZ   (1u << 2)
 // REG10 bits
 #define WD_RST   (1u << 3)
+#define VAC_OVP_MASK (3u << 4)
+#define VAC_OVP_18V  (1u << 4)          // 0 = 26 V (default), 1 = 18 V, 2 = 12 V, 3 = 7 V
 // REG11 bits
 #define AUTO_INDET_EN (1u << 6)
 #define HVDCP_EN      (1u << 3)
@@ -41,6 +43,7 @@ bool bq25798_init(void) {
     // D+/D- are not connected on this board: no BC1.2 / HVDCP detection, ship FET not fitted
     modify(REG_CTRL2, AUTO_INDET_EN | HVDCP_EN | (3u << 1), 0);
     wr8(REG_ADC_CTRL, 0x80 | (2u << 4));                       // ADC on, continuous, 13-bit
+    modify(REG_CTRL1, VAC_OVP_MASK, VAC_OVP_18V);              // input OVP 18 V: backstop for the 17 V firmware cut
     bq25798_enable(false);
     return true;
 }
@@ -55,6 +58,7 @@ bool bq25798_configure(uint16_t vreg_mv, uint16_t ichg_ma, uint16_t iindpm_ma) {
     bool ok = wr16(REG_VREG, vreg_mv / 10);
     ok &= wr16(REG_ICHG, ichg_ma / 10);
     ok &= wr16(REG_IINDPM, iindpm_ma / 10);
+    ok &= modify(REG_CTRL1, VAC_OVP_MASK, VAC_OVP_18V);        // re-applied: a watchdog/register reset restores 26 V
     return ok;
 }
 

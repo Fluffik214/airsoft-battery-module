@@ -3,7 +3,7 @@ package com.airsoftmodule.charger.data
 import java.util.Locale
 
 /** One entry of the module's flash event log (firmware/src/log.c). */
-data class LogEntry(val boot: Int, val seconds: Int, val code: Int, val value: Int) {
+data class LogEntry(val boot: Int, val seconds: Int, val code: Int, val value: Int, val idx: Int = 0) {
     val kind get() = EventKind.of(code)
     val title get() = kind?.title ?: "Unknown event #$code"
     val severity get() = kind?.severity ?: Severity.ERROR

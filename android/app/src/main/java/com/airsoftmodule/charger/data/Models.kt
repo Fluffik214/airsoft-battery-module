@@ -95,7 +95,7 @@ data class DevInfo(val fw: String, val hw: String, val uid: String, val chargerO
 enum class ConfigKey(val key: String, val min: Int, val max: Int, val step: Int, val default: Int) {
     VCELL("vcell", 4000, 4200, 10, 4200),
     ICHG("ichg", 100, 3000, 50, 1400),
-    IIN("iin", 500, 3000, 100, 2000),
+    IIN("iin", 500, 3000, 100, 1500),
     STORAGE("stor", 3700, 3900, 10, 3800),
     BAL_MIN("balmin", 3500, 4150, 10, 3900),
     MIN_VIN("minvin", 9000, 15000, 500, 12000),
