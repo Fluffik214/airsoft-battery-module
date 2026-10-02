@@ -1,0 +1,31 @@
+# KiCad local / temporary files
+*.kicad_prl
+*-backups/
+fp-info-cache
+*.orig
+*.lck
+*.rpt
+.history/
+
+# local design snapshots (zips)
+verified-backups/
+
+# old work-in-progress board copy
+layout_work/WIP_*.kicad_pcb
+
+# firmware build output
+firmware/build/
+
+# Android / Gradle
+android/.gradle/
+android/.kotlin/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+*.iml
+
+# OS / editors
+.DS_Store
+Thumbs.db
+__pycache__/

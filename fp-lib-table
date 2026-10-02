@@ -1,0 +1,4 @@
+(fp_lib_table
+	(version 7)
+	(lib (name "airsoft_module") (type "KiCad") (uri "${KIPRJMOD}/airsoft_module.pretty") (options "") (descr "Project footprints"))
+)
