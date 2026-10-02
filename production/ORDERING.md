@@ -29,7 +29,9 @@ The bottom side has only 13 easy parts: 0402/0603 passives, JP2 and the test pad
 
 | File | Contents |
 |---|---|
-| `bom.csv` | Bill of materials. Generic passives have no part number (any brand). ICs and connectors have exact part numbers. |
+| `bom_lcsc.csv` | **Upload this to the LCSC BOM tool (lcsc.com/bom).** Every line has a verified LCSC part number (C-number) and the quantity for one board; multiply in the web tool. |
+| `bom_jlcpcb.csv` | The same parts in JLCPCB assembly format (Comment / Designator / Footprint / LCSC Part #), in case JLC assembles the boards later. |
+| `bom.csv` | Design BOM from the schematic, with values and notes. |
 | `pick-and-place.csv` | Part positions and rotations for both sides (for PCBA or reference) |
 | `assembly-top.pdf` / `assembly-bottom.pdf` | Placement drawings with pad outlines and reference designators. The bottom one is mirrored, as seen from the back. |
 
