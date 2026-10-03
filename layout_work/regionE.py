@@ -11,6 +11,11 @@ NO_STITCH = [
     (100.0, 116.4, 236.0, 121.0),      # bottom-layer bus band
     (100.0, 100.0, 108.0, 121.0),      # USB-C shell / holes
     (229.0, 100.0, 236.0, 121.0),      # right-end holes
+    (134.3, 100.0, 139.9, 102.4),      # strap notches (regionH)
+    (170.7, 100.0, 176.3, 102.4),
+    (134.3, 118.6, 139.9, 121.0),
+    (170.7, 118.6, 176.3, 121.0),
+    (124.6, 111.2, 152.4, 116.6),      # back text '<desighned by Fluff>' (moved here by the user)
 ]
 def seg_dist(px, py, ax, ay, bx, by):
     dx, dy = bx - ax, by - ay

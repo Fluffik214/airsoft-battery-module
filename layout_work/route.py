@@ -15,8 +15,8 @@ OVR.update({
     'C31': (127.675, 101.6, 90),
     'R3': (122.6, 104.6, -90), 'R21': (124.4, 114.2, -90), 'JP1': (122.3, 114.6, 90),
     'C34': (127.025, 111.5, -90), 'C32': (127.675, 114.1, -90),
-    'R22': (133.0, 104.6, 90), 'R23': (134.6, 103.4, 0), 'C35': (134.6, 104.6, 0),
-    'R26': (135.0, 101.85, 0), 'D4': (137.6, 101.85, 180),
+    'R22': (133.0, 104.6, 90), 'R23': (134.6, 106.3, 0), 'C35': (134.6, 107.3, 0),    # R23/C35 moved down to make room for the LED row
+    'R26': (135.0, 102.75, 0), 'D4': (137.6, 102.75, 180),     # LED row below the PWR_HOLD lane (strap notch)
     'R20': (139.6, 104.1, -90), 'Q3': (142.0, 103.9, 0), 'Q2': (147.0, 103.9, 0), 'R19': (144.3, 106.2, 180),
     'U5': (145.5, 109.2, -90), 'D3': (149.0, 107.4, 180), 'C29': (148.4, 111.2, -90),
     'C30': (142.6, 109.6, -90), 'C33': (141.3, 109.6, -90),
@@ -90,7 +90,8 @@ b.via('VBUS', 107.95, 112.95)
 # lower pad -> VBUS lane along the bottom edge (top layer)
 b.track('VBUS', [(106.6, 112.95), (107.95, 112.95)], 0.6)
 b.track('VBUS', [(107.95, 112.95), (108.7, 113.7)], 0.6)
-b.track('VBUS', [(108.7, 113.7), (108.7, 118.5), (109.5, 119.3), (154.0, 119.3)], W_VB)
+b.track('VBUS', [(108.7, 113.7), (108.7, 118.5), (109.5, 119.3), (133.6, 119.3), (134.3, 118.6), (139.9, 118.6), (140.6, 119.3),
+                 (154.0, 119.3)], W_VB)     # steps up past the strap notch at x 137.1
 # bottom spur to R1 (CH224K VDD feed)
 b.track('VBUS', [(107.95, 108.05), (111.3, 108.05)], 0.4, B)
 b.via('VBUS', 111.3, 108.05)
@@ -144,6 +145,7 @@ exec(open(os.path.join(HERE, 'regionC.py')).read())
 exec(open(os.path.join(HERE, 'regionD.py')).read())
 exec(open(os.path.join(HERE, 'regionF.py')).read())
 exec(open(os.path.join(HERE, 'regionG.py')).read())
+exec(open(os.path.join(HERE, 'regionH.py')).read())
 for _ in range(3):
     print('chamfered', chamfer_corners(b))
 print('tees smoothed', smooth_tees(b))

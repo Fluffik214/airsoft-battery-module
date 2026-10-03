@@ -119,4 +119,4 @@ for vx in (jP[0] - 1.65, jP[0] - 0.65):
 
 # ---------------- text-area marker (back) for the user's custom text
 b.rect(198.0, 101.5, 209.8, 116.2, pcbnew.B_Fab, 0.12)
-b.text('CUSTOM TEXT AREA', 203.9, 108.85, pcbnew.B_Fab, 0.9, mirror=True)
+b.text('CUSTOM TEXT AREA', 203.65, 108.45, pcbnew.B_Fab, 0.9, mirror=True)
